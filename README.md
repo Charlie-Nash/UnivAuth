@@ -114,10 +114,6 @@ Permite la SEGUNDA autenticación para acceder al Sistema Web MVC.
    o
    sudo docker compose up --build -d
    ```
-
-4. Acceder a la API en:  
-   [http://localhost:5001/api/v1/micro01/listado](http://localhost:5001/api/v1/micro01/listado)
-
 ---
 
 ## 👤 Autor
