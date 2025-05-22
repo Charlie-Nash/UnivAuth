@@ -1,0 +1,9 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: UnivAuth.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ConnectionStrings__dbPersona=Server=${POSTGRES_IP_SERVER};Port=3306;Database=${POSTGRES_BD_NAME};User=postgres;Password=${POSTGRES_ROOT_PASSWORD};

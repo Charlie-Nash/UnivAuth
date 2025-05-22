@@ -1,0 +1,4 @@
+@UnivAuth.Api_HostAddress = http://localhost:5001
+
+GET {{UnivAuth.Api_HostAddress}}/
+Accept: application/json
