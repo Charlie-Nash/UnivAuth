@@ -24,33 +24,53 @@ namespace UnivAuth.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (!_apptAuth.AppSecretKeyValidation(Request.Headers["x-api-app-key"].ToString()))
+            try
             {
-                return Unauthorized(new {status = HttpStatusCode.Unauthorized, mensaje = "No autorizado" });
-            }
+                if (!_apptAuth.AppSecretKeyValidation(Request.Headers["x-api-app-key"].ToString()))
+                {
+                    return Unauthorized(new { status = HttpStatusCode.Unauthorized, mensaje = "No autorizado" });
+                }
 
-            if (string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Pwd)) 
+                if (string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Pwd))
+                {
+                    return BadRequest(new { status = HttpStatusCode.BadRequest, mensaje = "Usuario o contraseña incorrectos" });
+                }
+
+                User? user = await _loginService.LoginAsync(request);
+
+                if (user == null)
+                {
+                    return Unauthorized(new { status = HttpStatusCode.Unauthorized, mensaje = "Usuario o contraseña incorrectos" });
+                }
+
+                if (user.status != HttpStatusCode.OK)
+                {
+                    return StatusCode((int)user.status, new
+                    {
+                        user.status,
+                        user.mensaje
+                    });
+                }
+
+                LoginResult result = new LoginResult();
+                
+                result.usr = user.usr;
+                result.secreto = user.secreto;
+                result.tfa = user.tfa;
+
+                result.status = HttpStatusCode.OK;
+                result.mensaje = "";
+
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                return BadRequest(new {status = HttpStatusCode.BadRequest, mensaje = "Usuario o contraseña incorrectos"});
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    mensaje = ex.Message
+                });
             }
-
-            User? user = await _loginService.LoginAsync(request);
-
-            if (user == null)
-            {
-                return Unauthorized(new { status = HttpStatusCode.Unauthorized, mensaje = "Usuario o contraseña incorrectos" });
-            }
-
-            LoginResult result = new LoginResult();
-
-            result.usr = user.usr;
-            result.secreto = user.secreto;
-            result.tfa = user.tfa;
-            
-            result.status = HttpStatusCode.OK;
-            result.mensaje = "";
-
-            return Ok(result);
         }
 
         [HttpPost("login2fa")]

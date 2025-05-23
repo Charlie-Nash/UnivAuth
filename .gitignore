@@ -38,3 +38,4 @@ dist/
 
 # Archivos específicos de tu solución
 UnivAuth.Api/appsettings.json
+UnivAuth.Api/appsettings_para_docker.json

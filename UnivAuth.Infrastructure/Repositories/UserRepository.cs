@@ -3,6 +3,7 @@ using UnivAuth.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
+using System.Net;
 
 namespace UnivAuth.Infrastructure.Repositories
 {
@@ -17,33 +18,49 @@ namespace UnivAuth.Infrastructure.Repositories
 
         public async Task<User?> LoginAsync(string usuario, string pwd)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            using var cmd = new NpgsqlCommand("SELECT * FROM tf_login_usuario(@usuario, @pwd);", conn)
+            try
             {
-                CommandType = CommandType.Text
-            };
+                using var conn = new NpgsqlConnection(_connectionString);
+                using var cmd = new NpgsqlCommand("SELECT * FROM tf_login_usuario(@usuario, @pwd);", conn)
+                {
+                    CommandType = CommandType.Text
+                };
 
-            cmd.Parameters.AddWithValue("usuario", usuario);
-            cmd.Parameters.AddWithValue("pwd", pwd);
+                cmd.Parameters.AddWithValue("usuario", usuario);
+                cmd.Parameters.AddWithValue("pwd", pwd);
 
-            await conn.OpenAsync();
-            using var reader = await cmd.ExecuteReaderAsync();
+                await conn.OpenAsync();
+                using var reader = await cmd.ExecuteReaderAsync();
 
-            if (await reader.ReadAsync())
+                if (await reader.ReadAsync())
+                {
+                    return new User
+                    {
+                        id = Convert.ToInt32(reader["id"]),
+                        persona_id = Convert.ToInt32(reader["persona_id"]),
+                        usr = usuario,
+                        secreto = reader["secreto"].ToString()!,
+                        activo = Convert.ToBoolean(reader["activo"]),
+                        rol_id = Convert.ToInt32(reader["rol_id"]),
+                        tfa = Convert.ToBoolean(reader["tfa"]),
+                        status = HttpStatusCode.OK
+                    };
+                }
+
+                return new User
+                {
+                    status = HttpStatusCode.Unauthorized,
+                    mensaje = "Usuario o contraseña incorrectos"
+                };
+            }
+            catch (Exception ex)
             {
                 return new User
                 {
-                    id = Convert.ToInt32(reader["id"]),
-                    persona_id = Convert.ToInt32(reader["persona_id"]),
-                    usr = usuario,
-                    secreto = reader["secreto"].ToString()!,
-                    activo = Convert.ToBoolean(reader["activo"]),
-                    rol_id = Convert.ToInt32(reader["rol_id"]),
-                    tfa = Convert.ToBoolean(reader["tfa"])
+                    status = HttpStatusCode.InternalServerError,
+                    mensaje = ex.Message
                 };
-            }
-
-            return null;
+            }            
         }
 
         public async Task<User?> Login2faAsync(string usuario, string secreto)

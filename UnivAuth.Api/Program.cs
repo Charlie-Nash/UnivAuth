@@ -18,7 +18,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.MapGet("/", () => "UnivAuth: En línea");
+app.MapGet("/", () => "UnivAuth: Activo");
+
 app.MapControllers();
 
 app.Run();

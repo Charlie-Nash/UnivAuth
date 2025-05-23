@@ -6,4 +6,4 @@ services:
     ports:
       - "5001:8080"
     environment:
-      - ConnectionStrings__dbPersona=Server=${POSTGRES_IP_SERVER};Port=5432;Database=${POSTGRES_BD_NAME};User=postgres;Password=${POSTGRES_ROOT_PASSWORD};
+      - ConnectionStrings__dbPersona=Host=${POSTGRES_IP_SERVER};Port=5432;Database=${POSTGRES_BD_NAME};Username=postgres;Password=${POSTGRES_ROOT_PASSWORD};
